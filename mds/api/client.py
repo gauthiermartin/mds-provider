@@ -1,5 +1,5 @@
 """
-MDS Provider API client implementation. 
+MDS Provider API client implementation.
 """
 
 from datetime import datetime
@@ -103,6 +103,9 @@ class ProviderClient():
             # get the initial page of data
             r = session.get(url, params=params)
 
+            print(f"Requested provider {provider} @ url: {url}")
+
+
             if r.status_code is not 200:
                 __describe(r)
                 continue
@@ -125,7 +128,7 @@ class ProviderClient():
 
                 if __has_data(this_page):
                     results[provider].append(this_page)
-            
+
                 next_url = __next_url(this_page)
 
                 if next_url and rate_limit:
@@ -163,7 +166,7 @@ class ProviderClient():
                           Should be a datetime object or numeric representation of UNIX seconds
 
             - `bbox`: Filters for status changes where `event_location` is within defined bounding-box.
-                      The order is defined as: southwest longitude, southwest latitude, 
+                      The order is defined as: southwest longitude, southwest latitude,
                       northeast longitude, northeast latitude (separated by commas).
 
                       e.g.
@@ -225,7 +228,7 @@ class ProviderClient():
                           Should be a datetime object or numeric representation of UNIX seconds
 
             - `bbox`: Filters for trips where and point within `route` is within defined bounding-box.
-                      The order is defined as: southwest longitude, southwest latitude, 
+                      The order is defined as: southwest longitude, southwest latitude,
                       northeast longitude, northeast latitude (separated by commas).
 
                       e.g.
