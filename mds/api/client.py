@@ -78,6 +78,7 @@ class ProviderClient():
             Checks if this :page: has a "data" property with a non-empty payload
             """
             data = page["data"] if "data" in page else {"__payload__": []}
+            print(data)
             payload = data[endpoint] if endpoint in data else []
             print(f"Got payload with {len(payload)} {endpoint}")
             return len(payload) > 0
