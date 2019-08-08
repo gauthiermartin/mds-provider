@@ -78,9 +78,10 @@ class ProviderClient():
             Checks if this :page: has a "data" property with a non-empty payload
             """
             data = page["data"] if "data" in page else {"__payload__": []}
-            print(page)
+            links = page["links"]
             payload = data[endpoint] if endpoint in data else []
             print(f"Got payload with {len(payload)} {endpoint}")
+            print(links["next"])
             return len(payload) > 0
 
         def __next_url(page):
