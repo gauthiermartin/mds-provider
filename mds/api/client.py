@@ -81,7 +81,6 @@ class ProviderClient():
             print(page)
             payload = data[endpoint] if endpoint in data else []
             print(f"Got payload with {len(payload)} {endpoint}")
-            print(links["next"])
             return len(payload) > 0
 
         def __next_url(page):
