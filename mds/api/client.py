@@ -118,7 +118,6 @@ class ProviderClient():
             next_url = __next_url(this_page)
             while paging and next_url:
                 r = session.get(next_url)
-                print(f"Next url:{next_url}")
                 if r.status_code is not 200:
                     __describe(r)
                     break
