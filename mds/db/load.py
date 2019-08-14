@@ -5,7 +5,7 @@ Load MDS Provider data into a database.
 import json
 import mds
 from mds.db import sql
-from mds.fake.data import random_string
+from mds.fake.data import random_string, random_uuid
 from mds.json import read_data_file
 import os
 import pandas as pd
@@ -27,10 +27,12 @@ def data_engine(uri=None, **kwargs):
     """
     if uri is None and all(k in kwargs for k in ["user", "password", "host", "port", "db"]):
         backend = kwargs["backend"] if "backend" in kwargs else "postgresql"
-        user, password, host, port, db = kwargs["user"], kwargs["password"], kwargs["host"], kwargs["port"], kwargs["db"]
+        user, password, host, port, db = kwargs["user"], kwargs[
+            "password"], kwargs["host"], kwargs["port"], kwargs["db"]
         uri = f"{backend}://{user}:{password}@{host}:{port}/{db}"
     elif uri is None:
-        raise KeyError("Provide either `uri` or `user`, `password`, `host`, `port`, and `db`.")
+        raise KeyError(
+            "Provide either `uri` or `user`, `password`, `host`, `port`, and `db`.")
 
     return sqlalchemy.create_engine(uri)
 
@@ -142,15 +144,20 @@ class ProviderDataLoader():
         else:
             # insert this DataFrame into a fresh temp table
             factor = stage_first if isinstance(stage_first, int) else 1
-            temp = f"{table}_tmp_{random_string(factor, chars=string.ascii_lowercase)}"
+            if (factor != 1):
+                temp = f"{table}_tmp_{random_string(factor, chars=string.ascii_lowercase)}"
+            else:
+                temp = f"{table}_tmp_{random_uuid()}"
             df.to_sql(temp, self.engine, if_exists="replace", index=False)
 
             # now insert from the temp table to the actual table
             with self.engine.begin() as conn:
                 if record_type == mds.STATUS_CHANGES:
-                    query = sql.insert_status_changes_from(temp, table, on_conflict_update)
+                    query = sql.insert_status_changes_from(
+                        temp, table, on_conflict_update)
                 elif record_type == mds.TRIPS:
-                    query = sql.insert_trips_from(temp, table, on_conflict_update)
+                    query = sql.insert_trips_from(
+                        temp, table, on_conflict_update)
                 if query is not None:
                     conn.execute(query)
 
@@ -264,7 +271,8 @@ class ProviderDataLoader():
             self.load_from_file(source, record_type, table, **kwargs)
 
         else:
-            print(f"Couldn't recognize source with type '{type(source)}'. Skipping.")
+            print(
+                f"Couldn't recognize source with type '{type(source)}'. Skipping.")
 
     def load_status_changes(self, source, **kwargs):
         """
@@ -308,14 +316,19 @@ class ProviderDataLoader():
             """
             Helper converts JSON cols and ensures optional cols exist
             """
-            df.drop_duplicates(subset=["provider_id", "device_id", "event_time"], keep="last", inplace=True)
+            df.drop_duplicates(
+                subset=["provider_id", "device_id", "event_time"], keep="last", inplace=True)
             self._json_cols_tostring(df, ["event_location"])
-            df = self._add_missing_cols(df, ["battery_pct", "associated_trips"])
-            df[["associated_trips"]] = df[["associated_trips"]].astype("object")
-            df["associated_trips"] = df["associated_trips"].apply(lambda d: d if isinstance(d, list) else [])
+            df = self._add_missing_cols(
+                df, ["battery_pct", "associated_trips"])
+            df[["associated_trips"]] = df[[
+                "associated_trips"]].astype("object")
+            df["associated_trips"] = df["associated_trips"].apply(
+                lambda d: d if isinstance(d, list) else [])
             return before_load(df) if before_load else df
 
-        self.load_from_source(source, mds.STATUS_CHANGES, table, before_load=__before_load, **kwargs)
+        self.load_from_source(source, mds.STATUS_CHANGES,
+                              table, before_load=__before_load, **kwargs)
 
     def load_trips(self, source, **kwargs):
         """
@@ -359,9 +372,12 @@ class ProviderDataLoader():
             """
             Helper converts JSON cols and ensures optional cols exist
             """
-            df.drop_duplicates(subset=["provider_id", "trip_id"], keep="last", inplace=True)
+            df.drop_duplicates(
+                subset=["provider_id", "trip_id"], keep="last", inplace=True)
             self._json_cols_tostring(df, ["route"])
-            df = self._add_missing_cols(df, ["parking_verification_url", "standard_cost", "actual_cost"])
+            df = self._add_missing_cols(
+                df, ["parking_verification_url", "standard_cost", "actual_cost"])
             return before_load(df) if before_load else df
 
-        self.load_from_source(source, mds.TRIPS, table, before_load=__before_load, **kwargs)
+        self.load_from_source(source, mds.TRIPS, table,
+                              before_load=__before_load, **kwargs)
